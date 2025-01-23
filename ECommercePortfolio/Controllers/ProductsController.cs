@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ECommercePortfolio.Models;
 using ECommercePortfolio.Views.Shared;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommercePortfolio.Controllers;
@@ -14,15 +15,26 @@ public class ProductsController : Controller
         _context = context;
     }
 
-    public IActionResult Create()
-    {
-        return View();
-    }
+    
     
     public async Task<IActionResult> Index()
-        {
-            return View(await _context.Products.ToListAsync());
-        }
+    {
+        return View(await _context.Products.ToListAsync());
+    }
+
+    private void PopulateCategoriesDropdown(object selectedCategory = null)
+    {
+        var categoriesQuery = from d in _context.Categories
+            orderby d.Name
+            select d;
+        ViewBag.CategoryId = new SelectList(categoriesQuery.AsNoTracking(), "Id", "Name", selectedCategory);
+    }
+    
+    public IActionResult Create()
+    {
+        PopulateCategoriesDropdown();
+        return View();
+    }
     
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -35,6 +47,7 @@ public class ProductsController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        PopulateCategoriesDropdown(product.CategoryId);
         return View(product);
     }
 
@@ -67,12 +80,13 @@ public class ProductsController : Controller
             return NotFound();
         }
 
+        PopulateCategoriesDropdown(product.CategoryId);
         return View(product);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Name,Price,Description,CategoryId")] Product product)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price,Description,CategoryId")] Product product)
     {
         if (id != product.Id)
         {
@@ -84,6 +98,7 @@ public class ProductsController : Controller
             {
                 _context.Update(product);
                 await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -96,10 +111,13 @@ public class ProductsController : Controller
                     throw;
                 }
             }
-
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return View("Error");
+            }
         }
-
+        PopulateCategoriesDropdown(product.CategoryId);
         return View(product);
     }
 
