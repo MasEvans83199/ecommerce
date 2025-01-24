@@ -14,12 +14,10 @@ public class ProductsController : Controller
     {
         _context = context;
     }
-
-    
     
     public async Task<IActionResult> Index()
     {
-        return View(await _context.Products.ToListAsync());
+        return View(await _context.Products.Include(p => p.Category).ToListAsync());
     }
 
     private void PopulateCategoriesDropdown(object selectedCategory = null)
