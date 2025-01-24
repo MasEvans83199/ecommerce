@@ -1,0 +1,16 @@
+@inject ECommercePortfolio.Views.Shared.Services.ShoppingCart ShoppingCart
+
+<ul class="navbar-nav">
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="ShoppingCart" asp-action="Index">
+            <i class="fas fa-shopping-cart"></i>
+            Cart
+            @if (ShoppingCart.GetShoppingCartItems().Count > 0)
+            {
+                <span class="badge badge-pill badge-primary">
+                    @ShoppingCart.GetShoppingCartItems().Count
+                </span>
+            }
+        </a>
+    </li>
+</ul>
